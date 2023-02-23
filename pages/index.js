@@ -28,12 +28,16 @@ export default function Landing() {
   const [input, setInput] = useState(undefined);
 
   function handleConvert() {
-    try {
-      setOutput(generateSQL(JSON.parse(input)));
-    } catch {
-      setOutput('Invaild');
+    if (input) {
+      try {
+        setOutput(generateSQL(JSON.parse(input)));
+      } catch (err) {
+        console.error('PB2SQL:', err);
+        setOutput('Invaild');
+      }
+      setInput(null);
+    } else {
     }
-    setInput(null);
   }
 
   function generateSQL(json) {
@@ -46,17 +50,23 @@ export default function Landing() {
           field.type === 'text'
             ? 'VARCHAR(255)'
             : field.type === 'bool'
-            ? 'BOOLEAN'
+            ? 'TINYINT'
             : field.type === 'file'
             ? 'VARCHAR(255)'
             : field.type === 'editor'
-            ? 'TEXT'
+            ? 'VARCHAR(255)'
             : field.type === 'select'
             ? 'VARCHAR(255)'
             : field.type === 'url'
             ? 'VARCHAR(2083)'
             : field.type === 'relation'
-            ? `VARCHAR(255)`
+            ? 'INT'
+            : field.type === 'date'
+            ? 'DATETIME'
+            : field.type === 'json'
+            ? 'LONGTEXT'
+            : field.type === 'number'
+            ? 'INT'
             : '';
         const constraints = [];
         if (field.required) {
@@ -77,7 +87,7 @@ export default function Landing() {
       }
       var createTable = `CREATE TABLE ${collection.name} (\n  ${fields.join(
         ',\n  '
-      )} \n  PRIMARY KEY (id)`;
+      )}, \n  PRIMARY KEY (id)`;
       if (foreignKeys.length > 0) {
         createTable += `,\n  ${foreignKeys.join(',\n  ')}`;
       }
@@ -86,6 +96,7 @@ export default function Landing() {
     }
     return tables.join('\n\n');
   }
+
   return (
     <div className={styles.container}>
       <Head>
